@@ -1,6 +1,5 @@
 import os
 import re
-import time
 from dotenv import load_dotenv
 from playwright.sync_api import Page, expect
 
@@ -20,10 +19,8 @@ def login(page: Page):
     
     expect(page).to_have_url(re.compile(".*dashboard"), timeout=15000)
 
-def test_create_task(page: Page):
+def test_create_task(page, unique_title):
     login(page)
-    
-    unique_title = f"Test Task {int(time.time())}"
     
     page.get_by_role("link", name="Add task").click()
     page.get_by_placeholder("What do you need to do?").fill(unique_title)
