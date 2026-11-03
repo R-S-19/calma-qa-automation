@@ -47,3 +47,18 @@ def test_create_task_empty_title_rejected(auth_headers, created_task_ids):
     assert 400 <= response.status_code < 500, (
         f"Expected a 4xx, got {response.status_code}: {response.text}"
     )
+    
+@pytest.mark.parametrize("title", [
+    "<script>alert(1)</script>",
+    'Tom & Jerry\'s "quote"',
+    "日本語 émoji 🎯",
+])
+def test_special_character_titles_round_trip(auth_headers, created_task_ids, title):
+     body = {"title": title, "priority": "normal", "dueDate": None, "notes": ""}
+     response = requests.post(
+            f"{API_URL}/api/tasks", json=body, headers=auth_headers, timeout=60
+        )
+     if response.ok:
+            created_task_ids.append(response.json()["task"]["_id"])
+     assert response.status_code == 201
+     assert response.json()["task"]["title"] == title
