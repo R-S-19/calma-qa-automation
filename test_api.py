@@ -62,3 +62,26 @@ def test_special_character_titles_round_trip(auth_headers, created_task_ids, tit
             created_task_ids.append(response.json()["task"]["_id"])
      assert response.status_code == 201
      assert response.json()["task"]["title"] == title
+     
+def test_create_task_whitespace_title_rejected(auth_headers, created_task_ids):
+    body = {"title": "   ", "priority": "normal", "dueDate": None, "notes": ""}
+    response = requests.post(
+        f"{API_URL}/api/tasks", json=body, headers=auth_headers, timeout=60
+    )
+    if response.ok:
+        created_task_ids.append(response.json()["task"]["_id"])
+    assert 400 <= response.status_code < 500, (
+        f"Expected a 4xx, got {response.status_code}: {response.text}"
+    )
+    
+def test_create_task_very_long_title_does_not_crash(auth_headers, created_task_ids):
+    long_title = "A" * 500  # 500 characters
+    body = {"title": long_title, "priority": "normal", "dueDate": None, "notes": ""}
+    response = requests.post(
+        f"{API_URL}/api/tasks", json=body, headers=auth_headers, timeout=60
+    )
+    if response.ok:
+        created_task_ids.append(response.json()["task"]["_id"])
+    assert response.status_code < 500, (
+        f"Server error on long title: {response.status_code}: {response.text}"
+    )
